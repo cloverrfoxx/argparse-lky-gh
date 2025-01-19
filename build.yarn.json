@@ -1,0 +1,23 @@
+{
+    "all": {
+        "dependencies": [
+            "argparse.so"
+        ]
+    },
+    "argparse.so": {
+        "dependencies": [
+            "src/argparse.ls"
+        ],
+        "commands": [
+            "rm argparse.so",
+            "lky -sdio dddd src/argparse.ls",
+            "mv dddd argparse.so"
+        ]
+    },
+    "clean": {
+        "commands": [
+            "rm .hash.yarn",
+            "rm argparse.so"
+        ]
+    }
+}

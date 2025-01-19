@@ -1,0 +1,97 @@
+ArgParser=function()
+	parser={}
+	values=[]
+	names={}
+	positionals={}
+	positionalOrder=[]
+	getValue=function(name)
+		if names.hasIndex(name) then return values[names[name]]
+	end function
+	parser.getValue=@getValue
+	setValue=function(name,value)
+		if names.hasIndex(name) then
+			values[names[name]]=value
+			return self
+		end if
+	end function
+	parser.setValue=@setValue
+	getPositional=function(name)
+		if positionals.hasIndex(name) then return values[positionals[name]]
+	end function
+	parser.getPositional=@getPositional
+	setPositional=function(name,value)
+		if positionals.hasIndex(name) then
+			values[positionals[name]]=value
+			return self
+		end if
+	end function
+	parser.setPositional=@setPositional
+	parser.addArg=function(longNames,default=null,shortNames)
+		if not @shortNames then shortNames=[]
+		idx=values.len
+		values.push(default)
+		for name in longNames+shortNames
+			outer.names[name]=idx
+		end for
+		return self
+	end function
+	parser.addPositional=function(name)
+		idx=values.len
+		values.push(null)
+		outer.positionals[name]=idx
+		positionalOrder.push(name)
+		return self
+	end function
+	parser.parse=function(args)
+		posIdx=0
+		i=0
+		while i<args.len
+			arg=args[i]
+			if arg.len>2 and arg[:2]=="--" then
+				if not names.hasIndex(arg) then return "Unknown option: "+arg
+				idx=names[arg]
+				if values[idx]==0 then
+					values[idx]=1
+				else if values[idx]==null then
+					i=i+1
+					if i>=args.len then return "Missing value for option: "+arg
+					values[idx]=args[i]
+				end if
+			else if arg.len>1 and arg[0]=="-" then
+				if arg.len==2 then
+					short=arg[1]
+					if not names.hasIndex(short) then return "Unknown option: "+short
+					idx=names[short]
+					if values[idx]==0 then
+						values[idx]=1
+					else if values[idx]==null then
+						i=i+1
+						if i>=args.len then return "Missing value for option: "+short
+						values[idx]=args[i]
+					end if
+				else
+					for short in arg[1:]
+						if not names.hasIndex(short) then return "Unknown option: "+short
+						idx=names[short]
+						if values[idx]==0 then
+							values[idx]=1
+						else if values[idx]==null then
+							i=i+1
+							if i>=args.len then return "Missing value for option: "+short
+							values[idx]=args[i]
+						end if
+					end for
+				end if
+			else
+				if posIdx>=positionalOrder.len then return "Too many positional arguments."
+				posName=positionalOrder[posIdx]
+				idx=positionals[posName]
+				values[idx]=arg
+				posIdx=posIdx+1
+			end if
+			i=i+1
+		end while
+		return 0
+	end function
+	return parser
+end function
